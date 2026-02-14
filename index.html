@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroTech AI - Inteligência Real</title>
+    <title>AgroTech AI - Especialista Digital</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --agro-green: #27ae60; --dark: #1b262c; --white: #ffffff; }
@@ -12,26 +12,26 @@
 
         header { background: var(--dark); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--agro-green); }
         
-        /* Widget de Clima */
-        #weather-widget { background: #e8f5e9; padding: 10px; text-align: center; font-size: 0.85rem; color: var(--dark); border-bottom: 1px solid #ddd; }
+        /* Widget de Clima Real */
+        #weather-widget { background: #e8f5e9; padding: 10px; text-align: center; font-size: 0.85rem; color: var(--dark); border-bottom: 1px solid #ddd; font-weight: 500; }
 
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .message { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; }
-        .bot-msg { background: white; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .user-msg { background: var(--agro-green); color: white; align-self: flex-end; }
+        .message { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+        .bot-msg { background: white; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-bottom-left-radius: 2px; }
+        .user-msg { background: var(--agro-green); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
 
         .input-area { background: white; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
         input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 25px; outline: none; }
-        button { background: var(--agro-green); color: white; border: none; padding: 0 20px; border-radius: 25px; cursor: pointer; }
+        button { background: var(--agro-green); color: white; border: none; padding: 0 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
 
         #profile-selector { position: fixed; inset: 0; background: rgba(27,38,44,0.98); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .role-card { background: white; width: 90%; max-width: 350px; padding: 20px; margin: 10px; border-radius: 15px; border-left: 8px solid var(--agro-green); }
+        .role-card { background: white; width: 90%; max-width: 350px; padding: 20px; margin: 10px; border-radius: 15px; border-left: 8px solid var(--agro-green); cursor: pointer; }
     </style>
 </head>
 <body>
 
 <header><h1>AgroTech AI 🌿</h1></header>
-<div id="weather-widget">Carregando previsão do tempo...</div>
+<div id="weather-widget">Buscando clima em tempo real...</div>
 
 <div id="profile-selector">
     <h2 style="color:white; margin-bottom:20px;">Selecione seu Perfil</h2>
@@ -42,26 +42,37 @@
 <div id="chat"></div>
 
 <div class="input-area">
-    <input type="text" id="userInput" placeholder="Pergunte sobre pragas, clima ou solo...">
+    <input type="text" id="userInput" placeholder="Ex: Preciso de calcário agora?">
     <button onclick="handleAction()">Enviar</button>
 </div>
 
 <script>
-    const API_KEY = "COLE_AQUI_SUA_CHAVE_DO_PRINT"; // Use a chave do print 1000250832.jpg
+    // CHAVES CONFIGURADAS
+    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; //
+    const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
     let userRole = '';
 
-    // 1. Função de Clima (Exemplo usando OpenWeather gratuito)
-    async function getAgroWeather() {
-        // Para teste, simulando clima de uma região agro (pode usar Geolocalização depois)
-        const weatherDiv = document.getElementById('weather-widget');
-        weatherDiv.innerHTML = "☀️ Araçatuba/SP: 31°C | Umidade: 45% | Sem previsão de chuva para hoje.";
+    // Função de Clima Dinâmico
+    async function getLiveWeather(city = "Araçatuba") {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=pt_br&appid=${WEATHER_KEY}`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const temp = Math.round(data.main.temp);
+            const desc = data.weather[0].description;
+            const hum = data.main.humidity;
+            document.getElementById('weather-widget').innerHTML = 
+                `📍 ${city}: ${temp}°C | ${desc.charAt(0).toUpperCase() + desc.slice(1)} | Umidade: ${hum}%`;
+        } catch (e) {
+            document.getElementById('weather-widget').innerHTML = "⚠️ Erro ao carregar clima.";
+        }
     }
 
     function selectRole(role) {
         userRole = role;
         document.getElementById('profile-selector').style.display = 'none';
         addMessage(`Perfil selecionado: ${role}. Como posso ajudar no campo hoje?`, 'bot-msg');
-        getAgroWeather();
+        getLiveWeather(); // Busca o clima assim que o perfil é escolhido
     }
 
     function addMessage(text, type) {
@@ -72,20 +83,21 @@
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    // 2. Função que chama a IA Real (Gemini)
     async function callGemini(prompt) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: `Você é um assistente agro especializado. Responda como um consultor para um ${userRole}. Pergunta: ${prompt}` }] }]
-            })
-        });
-
-        const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `Você é um consultor agro. Responda brevemente para um ${userRole}: ${prompt}` }] }]
+                })
+            });
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (e) {
+            return "❌ Erro na IA. Verifique sua chave ou internet.";
+        }
     }
 
     async function handleAction() {
@@ -95,17 +107,14 @@
 
         addMessage(text, 'user-msg');
         input.value = '';
-        addMessage("IA processando dados de campo...", 'bot-msg');
+        
+        addMessage("IA processando dados de campo...", 'bot-msg'); //
+        const chat = document.getElementById('chat');
+        const lastMsg = chat.lastChild;
 
-        try {
-            const aiResponse = await callGemini(text);
-            // Remove a mensagem de processamento e add a real
-            const chat = document.getElementById('chat');
-            chat.removeChild(chat.lastChild);
-            addMessage(aiResponse, 'bot-msg');
-        } catch (e) {
-            addMessage("Erro ao conectar com a IA. Verifique sua chave API.", 'bot-msg');
-        }
+        const aiResponse = await callGemini(text);
+        lastMsg.innerText = aiResponse;
+        chat.scrollTop = chat.scrollHeight;
     }
 </script>
 </body>
