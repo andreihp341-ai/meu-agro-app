@@ -1,0 +1,15 @@
+{
+  "name": "AgroTech App",
+  "short_name": "AgroTech",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1e272e",
+  "theme_color": "#2ecc71",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/188/188333.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
