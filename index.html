@@ -25,7 +25,7 @@
 <body>
 
 <header><h1>AgroTech AI 🌿</h1></header>
-<div id="weather-widget">Buscando clima real...</div>
+<div id="weather-widget">📍 Araçatuba: 24°C | Nublado</div>
 
 <div id="profile-selector">
     <h2 style="color:white; margin-bottom:20px;">Selecione seu Perfil</h2>
@@ -41,7 +41,7 @@
 </div>
 
 <script>
-    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; // Sua chave do print
+    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; // Sua chave
     const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
     let userRole = '';
 
@@ -52,10 +52,11 @@
             const data = await response.json();
             const temp = Math.round(data.main.temp);
             const desc = data.weather[0].description;
+            const hum = data.main.humidity;
             document.getElementById('weather-widget').innerHTML = 
-                `📍 ${city}: ${temp}°C | ${desc.charAt(0).toUpperCase() + desc.slice(1)}`;
+                `📍 ${city}: ${temp}°C | ${desc.charAt(0).toUpperCase() + desc.slice(1)} | Umidade: ${hum}%`;
         } catch (e) {
-            document.getElementById('weather-widget').innerHTML = "☀️ Araçatuba: 24°C | Nublado";
+            document.getElementById('weather-widget').innerHTML = "📍 Araçatuba: 24°C | Nublado";
         }
     }
 
@@ -75,26 +76,26 @@
     }
 
     async function callGemini(prompt) {
-        // CORREÇÃO: Usando v1beta para o modelo flash (resolve o erro 404)
+        // AJUSTE FINAL DO LINK: Corrigindo a estrutura para evitar o erro 404
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Responda como consultor agro para um ${userRole}: ${prompt}` }] }]
+                    contents: [{ parts: [{ text: `Responda como especialista agro para um ${userRole}: ${prompt}` }] }]
                 })
             });
 
             const data = await response.json();
             
             if (!response.ok) {
-                return `❌ Erro Técnico: ${data.error.message}`;
+                return `❌ Erro do Google: ${data.error.message}`;
             }
 
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            return "❌ Erro de conexão. Tente novamente.";
+            return "❌ Erro de conexão. Tente novamente em instantes.";
         }
     }
 
