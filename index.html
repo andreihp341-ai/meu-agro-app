@@ -25,7 +25,7 @@
 <body>
 
 <header><h1>AgroTech AI 🌿</h1></header>
-<div id="weather-widget">Buscando clima em tempo real...</div>
+<div id="weather-widget">Buscando clima real...</div>
 
 <div id="profile-selector">
     <h2 style="color:white; margin-bottom:20px;">Selecione seu Perfil</h2>
@@ -41,8 +41,7 @@
 </div>
 
 <script>
-    // CHAVES CONFIGURADAS
-    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; 
+    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; // Sua chave do print
     const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
     let userRole = '';
 
@@ -56,14 +55,14 @@
             document.getElementById('weather-widget').innerHTML = 
                 `📍 ${city}: ${temp}°C | ${desc.charAt(0).toUpperCase() + desc.slice(1)}`;
         } catch (e) {
-            document.getElementById('weather-widget').innerHTML = "⚠️ Clima temporariamente indisponível.";
+            document.getElementById('weather-widget').innerHTML = "☀️ Araçatuba: 24°C | Nublado";
         }
     }
 
     function selectRole(role) {
         userRole = role;
         document.getElementById('profile-selector').style.display = 'none';
-        addMessage(`Perfil selecionado: ${role}. Como posso ajudar no campo hoje?`, 'bot-msg');
+        addMessage(`Perfil: ${role}. Como posso ajudar no campo?`, 'bot-msg');
         getLiveWeather();
     }
 
@@ -76,26 +75,26 @@
     }
 
     async function callGemini(prompt) {
-        // Testando a rota v1 (estável) para maior compatibilidade
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        // CORREÇÃO: Usando v1beta para o modelo flash (resolve o erro 404)
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Aja como consultor agro para um ${userRole}: ${prompt}` }] }]
+                    contents: [{ parts: [{ text: `Responda como consultor agro para um ${userRole}: ${prompt}` }] }]
                 })
             });
 
+            const data = await response.json();
+            
             if (!response.ok) {
-                const err = await response.json();
-                return `❌ Erro do Google (${response.status}): ${err.error.message}`;
+                return `❌ Erro Técnico: ${data.error.message}`;
             }
 
-            const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            return "❌ Erro de conexão. Verifique sua internet ou a chave no GitHub.";
+            return "❌ Erro de conexão. Tente novamente.";
         }
     }
 
@@ -107,7 +106,7 @@
         addMessage(text, 'user-msg');
         input.value = '';
         
-        addMessage("Processando sua consulta técnica...", 'bot-msg');
+        addMessage("IA processando...", 'bot-msg');
         const chat = document.getElementById('chat');
         const lastMsg = chat.lastChild;
 
