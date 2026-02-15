@@ -36,7 +36,7 @@
 <div id="chat"></div>
 
 <div class="input-area">
-    <input type="text" id="userInput" placeholder="Ex: Preciso de calcário agora?">
+    <input type="text" id="userInput" placeholder="Ex: Dosagem de calcário...">
     <button onclick="handleAction()">Enviar</button>
 </div>
 
@@ -53,11 +53,10 @@
             const data = await response.json();
             const temp = Math.round(data.main.temp);
             const desc = data.weather[0].description;
-            const hum = data.main.humidity;
             document.getElementById('weather-widget').innerHTML = 
-                `📍 ${city}: ${temp}°C | ${desc.charAt(0).toUpperCase() + desc.slice(1)} | Umidade: ${hum}%`;
+                `📍 ${city}: ${temp}°C | ${desc.charAt(0).toUpperCase() + desc.slice(1)}`;
         } catch (e) {
-            document.getElementById('weather-widget').innerHTML = "⚠️ Erro ao carregar clima.";
+            document.getElementById('weather-widget').innerHTML = "⚠️ Clima temporariamente indisponível.";
         }
     }
 
@@ -77,23 +76,26 @@
     }
 
     async function callGemini(prompt) {
-        // Mudança para v1 estável para evitar erros de chave nova
+        // Testando a rota v1 (estável) para maior compatibilidade
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Você é um consultor agro experiente. Responda de forma direta e técnica para um ${userRole}: ${prompt}` }] }]
+                    contents: [{ parts: [{ text: `Aja como consultor agro para um ${userRole}: ${prompt}` }] }]
                 })
             });
 
-            if (!response.ok) throw new Error('Falha na chave');
+            if (!response.ok) {
+                const err = await response.json();
+                return `❌ Erro do Google (${response.status}): ${err.error.message}`;
+            }
 
             const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            return "❌ Erro na IA. Se o problema persistir, crie uma nova chave no AI Studio.";
+            return "❌ Erro de conexão. Verifique sua internet ou a chave no GitHub.";
         }
     }
 
@@ -105,7 +107,7 @@
         addMessage(text, 'user-msg');
         input.value = '';
         
-        addMessage("Consultando inteligência artificial...", 'bot-msg');
+        addMessage("Processando sua consulta técnica...", 'bot-msg');
         const chat = document.getElementById('chat');
         const lastMsg = chat.lastChild;
 
