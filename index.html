@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroTech AI - Especialista Digital</title>
+    <title>AgroTech AI - Versão Livre</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --agro-green: #27ae60; --dark: #1b262c; --white: #ffffff; }
@@ -12,37 +12,36 @@
         header { background: var(--dark); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--agro-green); }
         #weather-widget { background: #e8f5e9; padding: 10px; text-align: center; font-size: 0.85rem; color: var(--dark); border-bottom: 1px solid #ddd; font-weight: 500; }
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .message { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+        .message { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; }
         .bot-msg { background: white; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .user-msg { background: var(--agro-green); color: white; align-self: flex-end; }
         .input-area { background: white; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
         input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 25px; outline: none; }
         button { background: var(--agro-green); color: white; border: none; padding: 0 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
         #profile-selector { position: fixed; inset: 0; background: rgba(27,38,44,0.98); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .role-card { background: white; width: 90%; max-width: 350px; padding: 20px; margin: 10px; border-radius: 15px; cursor: pointer; }
+        .role-card { background: white; width: 90%; max-width: 350px; padding: 20px; margin: 10px; border-radius: 15px; cursor: pointer; border-left: 5px solid var(--agro-green); }
     </style>
 </head>
 <body>
 
 <header><h1>AgroTech AI 🌿</h1></header>
-<div id="weather-widget">Carregando clima...</div>
+<div id="weather-widget">📍 Verificando clima em Araçatuba...</div>
 
 <div id="profile-selector">
     <h2 style="color:white; margin-bottom:20px;">Selecione seu Perfil</h2>
-    <div class="role-card" onclick="selectRole('Produtor Rural')"><h3>🧑‍🌾 Produtor</h3></div>
-    <div class="role-card" onclick="selectRole('Engenheiro Agrônomo')"><h3>🎓 Agrônomo</h3></div>
+    <div class="role-card" onclick="selectRole('Produtor Rural')"><h3>🧑‍🌾 Produtor</h3><p>Foco em resultados rápidos.</p></div>
+    <div class="role-card" onclick="selectRole('Engenheiro Agrônomo')"><h3>🎓 Agrônomo</h3><p>Foco em detalhes técnicos.</p></div>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-area">
-    <input type="text" id="userInput" placeholder="Digite sua dúvida...">
+    <input type="text" id="userInput" placeholder="Sua dúvida agro...">
     <button onclick="handleAction()">Enviar</button>
 </div>
 
 <script>
-    // SUAS CHAVES (Já configuradas)
-    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; 
+    // A única chave necessária é a do Clima (que você já tem e funciona)
     const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
     let userRole = '';
 
@@ -53,7 +52,7 @@
             const data = await response.json();
             const temp = Math.round(data.main.temp);
             const desc = data.weather[0].description;
-            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${temp}°C | ${desc}`;
+            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${temp}°C | ${desc} | Umidade: ${data.main.humidity}%`;
         } catch (e) {
             document.getElementById('weather-widget').innerHTML = "📍 Araçatuba: 24°C | Nublado";
         }
@@ -62,7 +61,7 @@
     function selectRole(role) {
         userRole = role;
         document.getElementById('profile-selector').style.display = 'none';
-        addMessage(`Perfil: ${role}. Como posso ajudar?`, 'bot-msg');
+        addMessage(`Sistema pronto. Perfil: ${role}. Como posso ajudar no campo?`, 'bot-msg');
         getLiveWeather();
     }
 
@@ -74,29 +73,25 @@
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function callGemini(prompt) {
-        // CORREÇÃO DEFINITIVA: Usando o modelo 'gemini-1.5-flash' na versão 'v1beta'
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
-        
+    async function callFreeAI(prompt) {
+        // Usando um modelo público e gratuito (sem necessidade de API Key individual)
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("https://api.pawan.krd/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Aja como especialista agro para um ${userRole}. Seja breve: ${prompt}` }] }]
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        { role: "system", content: `Você é um agrônomo especialista atendendo um ${userRole}. Responda em português de forma prática.` },
+                        { role: "user", content: prompt }
+                    ]
                 })
             });
 
             const data = await response.json();
-            
-            if (!response.ok) {
-                // Se der erro, mostramos o detalhe técnico para facilitar
-                return `❌ Erro (${data.error.code}): ${data.error.message}`;
-            }
-
-            return data.candidates[0].content.parts[0].text;
+            return data.choices[0].message.content;
         } catch (e) {
-            return "❌ Erro de conexão. Verifique sua internet.";
+            return "⚠️ O servidor de IA gratuita está instável. Aguarde 10 segundos e tente novamente.";
         }
     }
 
@@ -104,12 +99,15 @@
         const input = document.getElementById('userInput');
         const text = input.value.trim();
         if (!text) return;
+
         addMessage(text, 'user-msg');
         input.value = '';
-        addMessage("Consultando inteligência...", 'bot-msg');
+        
+        addMessage("Analisando dados agrícolas...", 'bot-msg');
         const chat = document.getElementById('chat');
         const lastMsg = chat.lastChild;
-        const aiResponse = await callGemini(text);
+
+        const aiResponse = await callFreeAI(text);
         lastMsg.innerText = aiResponse;
         chat.scrollTop = chat.scrollHeight;
     }
