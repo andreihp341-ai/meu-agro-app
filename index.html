@@ -25,7 +25,7 @@
 <body>
 
 <header><h1>AgroTech AI 🌿</h1></header>
-<div id="weather-widget">Buscando clima...</div>
+<div id="weather-widget">Carregando clima...</div>
 
 <div id="profile-selector">
     <h2 style="color:white; margin-bottom:20px;">Selecione seu Perfil</h2>
@@ -41,7 +41,7 @@
 </div>
 
 <script>
-    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; // Sua chave do print
+    const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; 
     const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
     let userRole = '';
 
@@ -74,22 +74,27 @@
     }
 
     async function callGemini(prompt) {
-        // NOVO LINK: Removido o models/ do meio para evitar o Erro 404
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        // MUDANÇA AQUI: Trocamos para 'gemini-pro' (versão clássica)
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`;
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Responda como especialista agro para um ${userRole}: ${prompt}` }] }]
+                    contents: [{ parts: [{ text: `Aja como especialista agro para um ${userRole}: ${prompt}` }] }]
                 })
             });
 
             const data = await response.json();
-            if (!response.ok) return `❌ Erro do Google: ${data.error.message}`;
+            
+            if (!response.ok) {
+                // Se der erro, mostra o motivo exato
+                return `❌ Erro da API: ${data.error.message}`;
+            }
+
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            return "❌ Erro de conexão. Tente novamente.";
+            return "❌ Erro de conexão. Verifique a internet.";
         }
     }
 
@@ -99,7 +104,7 @@
         if (!text) return;
         addMessage(text, 'user-msg');
         input.value = '';
-        addMessage("IA processando...", 'bot-msg');
+        addMessage("Consultando Gemini Pro...", 'bot-msg');
         const chat = document.getElementById('chat');
         const lastMsg = chat.lastChild;
         const aiResponse = await callGemini(text);
