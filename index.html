@@ -41,6 +41,7 @@
 </div>
 
 <script>
+    // SUAS CHAVES (Já configuradas)
     const GEMINI_KEY = "AIzaSyCYJrMits9kfyD8b229xI0Y_qCOiZ0xzBA"; 
     const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
     let userRole = '';
@@ -74,27 +75,28 @@
     }
 
     async function callGemini(prompt) {
-        // MUDANÇA AQUI: Trocamos para 'gemini-pro' (versão clássica)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`;
+        // CORREÇÃO DEFINITIVA: Usando o modelo 'gemini-1.5-flash' na versão 'v1beta'
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Aja como especialista agro para um ${userRole}: ${prompt}` }] }]
+                    contents: [{ parts: [{ text: `Aja como especialista agro para um ${userRole}. Seja breve: ${prompt}` }] }]
                 })
             });
 
             const data = await response.json();
             
             if (!response.ok) {
-                // Se der erro, mostra o motivo exato
-                return `❌ Erro da API: ${data.error.message}`;
+                // Se der erro, mostramos o detalhe técnico para facilitar
+                return `❌ Erro (${data.error.code}): ${data.error.message}`;
             }
 
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            return "❌ Erro de conexão. Verifique a internet.";
+            return "❌ Erro de conexão. Verifique sua internet.";
         }
     }
 
@@ -104,7 +106,7 @@
         if (!text) return;
         addMessage(text, 'user-msg');
         input.value = '';
-        addMessage("Consultando Gemini Pro...", 'bot-msg');
+        addMessage("Consultando inteligência...", 'bot-msg');
         const chat = document.getElementById('chat');
         const lastMsg = chat.lastChild;
         const aiResponse = await callGemini(text);
