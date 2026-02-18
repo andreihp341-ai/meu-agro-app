@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroTech AI - Versão Livre</title>
+    <title>AgroTech AI - Especialista Total</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --agro-green: #27ae60; --dark: #1b262c; --white: #ffffff; }
@@ -13,55 +13,69 @@
         #weather-widget { background: #e8f5e9; padding: 10px; text-align: center; font-size: 0.85rem; color: var(--dark); border-bottom: 1px solid #ddd; font-weight: 500; }
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .message { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; }
-        .bot-msg { background: white; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .bot-msg { background: white; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--agro-green); }
         .user-msg { background: var(--agro-green); color: white; align-self: flex-end; }
         .input-area { background: white; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
         input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 25px; outline: none; }
         button { background: var(--agro-green); color: white; border: none; padding: 0 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
         #profile-selector { position: fixed; inset: 0; background: rgba(27,38,44,0.98); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .role-card { background: white; width: 90%; max-width: 350px; padding: 20px; margin: 10px; border-radius: 15px; cursor: pointer; border-left: 5px solid var(--agro-green); }
+        .role-card { background: white; width: 90%; max-width: 350px; padding: 20px; margin: 10px; border-radius: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <header><h1>AgroTech AI 🌿</h1></header>
-<div id="weather-widget">📍 Verificando clima em Araçatuba...</div>
+<div id="weather-widget">📍 Monitorando clima de Araçatuba...</div>
 
 <div id="profile-selector">
     <h2 style="color:white; margin-bottom:20px;">Selecione seu Perfil</h2>
-    <div class="role-card" onclick="selectRole('Produtor Rural')"><h3>🧑‍🌾 Produtor</h3><p>Foco em resultados rápidos.</p></div>
-    <div class="role-card" onclick="selectRole('Engenheiro Agrônomo')"><h3>🎓 Agrônomo</h3><p>Foco em detalhes técnicos.</p></div>
+    <div class="role-card" onclick="selectRole('Produtor Rural')"><h3>🧑‍🌾 Produtor</h3><p>Gestão e Safra.</p></div>
+    <div class="role-card" onclick="selectRole('Engenheiro Agrônomo')"><h3>🎓 Agrônomo</h3><p>Técnica e Precisão.</p></div>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-area">
-    <input type="text" id="userInput" placeholder="Sua dúvida agro...">
+    <input type="text" id="userInput" placeholder="Ex: Fale sobre agricultura de precisão...">
     <button onclick="handleAction()">Enviar</button>
 </div>
 
 <script>
-    // A única chave necessária é a do Clima (que você já tem e funciona)
     const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
     let userRole = '';
+
+    // BASE DE CONHECIMENTO AGRONÔMICO AMPLIADA
+    const agroKnowledge = {
+        "precisao": "A Agricultura de Precisão (AP) utiliza GPS, sensores e telemetria para gerenciar a variabilidade do solo. O objetivo é aplicar o insumo correto, no local correto e na hora correta, aumentando a eficiência e reduzindo custos.",
+        "calcario": "A calagem é essencial para corrigir a acidez do solo e fornecer Cálcio e Magnésio. O cálculo base considera a Saturação por Bases (V%). Lembre-se: aplique com antecedência mínima de 60 a 90 dias antes do plantio para reação química ideal.",
+        "manejo": "O Manejo Integrado de Pragas (MIP) foca no equilíbrio. Utilize monitoramento constante, controle biológico e, em última instância, defensivos químicos se atingir o nível de dano econômico.",
+        "agronegocio": "O agronegócio brasileiro representa cerca de 25% do PIB nacional. Envolve desde a produção de insumos até a logística de exportação. Focar em ESG (sustentabilidade) é a tendência global para manter mercados abertos.",
+        "plantacao": "Para uma plantação de sucesso, o Plantio Direto é o 'padrão ouro': mínima mobilização do solo, cobertura permanente com palhada e rotação de culturas para manter a saúde biológica.",
+        "soja": "A cultura da soja exige atenção ao vazio sanitário para evitar a ferrugem asiática. A inoculação com Bradyrhizobium é vital para fixação de nitrogênio e economia de fertilizantes.",
+        "milho": "No milho, a adubação de cobertura nitrogenada é o fator crítico de produtividade. Monitore também o percevejo barriga-verde e a cigarrinha-do-milho desde a emergência.",
+        "cana": "O setor sucroenergético exige planejamento de logística de colheita. O manejo da fertilidade foca em Fósforo no sulco de plantio e Potássio em cobertura.",
+        "gps": "O uso de GPS e GNSS permite o autotrafego (piloto automático), reduzindo o pisoteio da cultura e a compactação do solo, além de permitir o trabalho noturno com precisão milimétrica.",
+        "solo": "A saúde do solo é o seu maior ativo. Evite o excesso de mecanização pesada em solos úmidos para não causar compactação, o que impede o crescimento radicular.",
+        "drone": "Drones na agricultura servem para mapeamento de falhas, identificação de estresse hídrico e aplicação localizada em áreas de difícil acesso.",
+        "calcário": "O calcário dolomítico é preferido quando o solo também precisa de magnésio. Já o calcário calcítico é focado apenas no cálcio. Verifique sempre o PRNT (Poder Relativo de Neutralização Total) do produto.",
+        "fertilizante": "A regra dos 4Rs da fertilização: Fonte Certa, Dose Certa, Hora Certa e Lugar Certo. Isso garante que a planta absorva o máximo e o meio ambiente sofra o mínimo."
+    };
 
     async function getLiveWeather(city = "Araçatuba") {
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=pt_br&appid=${WEATHER_KEY}`;
         try {
             const response = await fetch(url);
             const data = await response.json();
-            const temp = Math.round(data.main.temp);
-            const desc = data.weather[0].description;
-            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${temp}°C | ${desc} | Umidade: ${data.main.humidity}%`;
+            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${Math.round(data.main.temp)}°C | ${data.weather[0].description} | Umidade: ${data.main.humidity}%`;
         } catch (e) {
-            document.getElementById('weather-widget').innerHTML = "📍 Araçatuba: 24°C | Nublado";
+            document.getElementById('weather-widget').innerHTML = "📍 Araçatuba: 28°C | Ensolarado";
         }
     }
 
     function selectRole(role) {
         userRole = role;
         document.getElementById('profile-selector').style.display = 'none';
-        addMessage(`Sistema pronto. Perfil: ${role}. Como posso ajudar no campo?`, 'bot-msg');
+        addMessage(`Bem-vindo ao AgroTech AI. Atuando como ${role}. Digite palavras-chave como 'calcário', 'precisão' ou 'manejo' para começar.`, 'bot-msg');
         getLiveWeather();
     }
 
@@ -73,29 +87,25 @@
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function callFreeAI(prompt) {
-        // Usando um modelo público e gratuito (sem necessidade de API Key individual)
-        try {
-            const response = await fetch("https://api.pawan.krd/v1/chat/completions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "gpt-3.5-turbo",
-                    messages: [
-                        { role: "system", content: `Você é um agrônomo especialista atendendo um ${userRole}. Responda em português de forma prática.` },
-                        { role: "user", content: prompt }
-                    ]
-                })
-            });
+    function searchAgro(text) {
+        const q = text.toLowerCase();
+        let answers = [];
 
-            const data = await response.json();
-            return data.choices[0].message.content;
-        } catch (e) {
-            return "⚠️ O servidor de IA gratuita está instável. Aguarde 10 segundos e tente novamente.";
+        // Busca múltipla: se o usuário digitar "calcario e soja", traz os dois
+        for (let key in agroKnowledge) {
+            if (q.includes(key)) {
+                answers.push(agroKnowledge[key]);
+            }
+        }
+
+        if (answers.length > 0) {
+            return answers.join("\n\n---\n\n");
+        } else {
+            return `Como seu consultor ${userRole}, entendo sua dúvida. No momento, minha base local cobre: Calcário, Soja, Milho, Cana, GPS, Drones, Agricultura de Precisão e Manejo de Solo. Pode reformular sua pergunta usando uma dessas palavras?`;
         }
     }
 
-    async function handleAction() {
+    function handleAction() {
         const input = document.getElementById('userInput');
         const text = input.value.trim();
         if (!text) return;
@@ -103,13 +113,10 @@
         addMessage(text, 'user-msg');
         input.value = '';
         
-        addMessage("Analisando dados agrícolas...", 'bot-msg');
-        const chat = document.getElementById('chat');
-        const lastMsg = chat.lastChild;
-
-        const aiResponse = await callFreeAI(text);
-        lastMsg.innerText = aiResponse;
-        chat.scrollTop = chat.scrollHeight;
+        setTimeout(() => {
+            const result = searchAgro(text);
+            addMessage(result, 'bot-msg');
+        }, 500);
     }
 </script>
 </body>
