@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroTech AI - Especialista Multi-Perfil</title>
+    <title>AgroTech AI - Consultoria Real</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --agro-green: #27ae60; --dark: #1b262c; --white: #ffffff; --accent: #f1c40f; }
+        :root { --agro-green: #27ae60; --dark: #1b262c; --white: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f4f7f6; display: flex; flex-direction: column; height: 100vh; }
         header { background: var(--dark); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--agro-green); }
@@ -19,9 +19,7 @@
         input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 25px; outline: none; }
         button { background: var(--agro-green); color: white; border: none; padding: 0 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
         #profile-selector { position: fixed; inset: 0; background: rgba(27,38,44,0.98); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .role-card { background: white; width: 90%; max-width: 350px; padding: 20px; margin: 10px; border-radius: 15px; cursor: pointer; transition: 0.3s; }
-        .role-card:hover { transform: scale(1.05); }
-        .tag { font-size: 0.7rem; font-weight: bold; color: var(--agro-green); margin-bottom: 5px; display: block; }
+        .role-card { background: white; width: 90%; max-width: 350px; padding: 25px; margin: 10px; border-radius: 15px; cursor: pointer; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
@@ -30,71 +28,48 @@
 <div id="weather-widget">📍 Sincronizando clima de Araçatuba...</div>
 
 <div id="profile-selector">
-    <h2 style="color:white; margin-bottom:20px;">Como deseja conversar hoje?</h2>
+    <h2 style="color:white; margin-bottom:20px;">Selecione seu Perfil</h2>
     <div class="role-card" onclick="selectRole('Engenheiro Agrônomo')">
-        <span class="tag">MODO TÉCNICO</span>
         <h3>🎓 Engenheiro Agrônomo</h3>
-        <p>Foco em fisiologia, química do solo e fitossanidade.</p>
+        <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">Consultoria técnica e científica.</p>
     </div>
     <div class="role-card" onclick="selectRole('Produtor Rural')">
-        <span class="tag">MODO NEGÓCIOS</span>
         <h3>🧑‍🌾 Produtor Rural</h3>
-        <p>Foco em rendimento (sc/ha), lucro e gestão da safra.</p>
+        <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">Foco em lida, mercado e lucro.</p>
     </div>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-area">
-    <input type="text" id="userInput" placeholder="Digite um tema (Ex: Calcário, Soja, Mercado...)">
+    <input type="text" id="userInput" placeholder="Sua dúvida agro...">
     <button onclick="handleAction()">Enviar</button>
 </div>
 
 <script>
-    const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d"; 
+    // CREDENCIAIS ATUALIZADAS
+    const GEMINI_KEY = "AIzaSyCIDjlsWbgIRCNYZFzOhee2A7Leq1SDquU"; 
+    const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d";
     let userRole = '';
-
-    // DICIONÁRIO PARA O ENGENHEIRO (Termos Técnicos)
-    const techAgro = {
-        "calcario": "A calagem deve visar o equilíbrio da CTC e elevação da V%. Recomendo calcário dolomítico para suprir o Mg++ trocável. Atenção ao PRNT e à profundidade de incorporação para neutralizar o Al+++ tóxico.",
-        "soja": "Foco no estádio fenológico R1-R5. Monitore a pressão de Ferrugem Asiática (Phakopsora pachyrhizi). A fixação biológica de nitrogênio via Bradyrhizobium é crucial para o balanço nutricional.",
-        "precisao": "Utilize grades de amostragem georreferenciadas para gerar mapas de aplicação em taxa variável (VRT). Isso corrige a variabilidade espacial da fertilidade e otimiza o uso de insumos.",
-        "manejo": "O MIP exige monitoramento do nível de dano econômico. Avalie a população de ninfas e adultos antes da intervenção química. Priorize seletividade para preservar inimigos naturais.",
-        "irrigacao": "O manejo hídrico deve basear-se na Evapotranspiração de referência (ETo) e no Kc da cultura. Monitore o potencial matricial do solo via tensiometria para evitar lixiviação de nutrientes.",
-        "npk": "O parcelamento do Potássio (K) é vital em solos arenosos para evitar perdas por lixiviação. O Fósforo (P) deve ser posicionado no sulco devido à sua baixa mobilidade e alta fixação em solos argilosos.",
-        "pecuaria": "Manejo de pastagem com foco no índice de área foliar (IAF) residual. Planeje a suplementação mineral baseada na curva de crescimento do capim e na exigência de proteína bruta do lote."
-    };
-
-    // DICIONÁRIO PARA O PRODUTOR (Termos de Negócio/Setor)
-    const businessAgro = {
-        "calcario": "Investir em calcário é o melhor retorno por real gasto. Ele 'destrava' a terra. Aplique cedo para colher mais sacas por hectare. Solo corrigido aguenta mais o veranico e protege seu investimento.",
-        "soja": "A meta é fechar com média acima de 70 sacas/ha. Olho no mercado futuro para travar preços. Proteja a lavoura das pragas para não perder peso de grão e margem de lucro no final da safra.",
-        "precisao": "É usar a tecnologia para economizar adubo onde a terra já está boa e colocar onde realmente precisa. Menos desperdício no talhão significa mais dinheiro sobrando na conta da fazenda.",
-        "manejo": "Limpar a área e cuidar do mato competição. Lavoura limpa rende mais. O segredo é o tempo certo da entrada da máquina para não gastar com veneno caro à toa.",
-        "irrigacao": "É o seguro contra a seca. Garante a produtividade mesmo se o tempo virar. O custo da energia compensa pela segurança de colher a safrinha sem sustos hídricos.",
-        "mercado": "Acompanhe as cotações da CBOT (Bolsa de Chicago) e o prêmio nos portos. O câmbio do dólar manda no preço dos insumos e na sua venda. Planeje o Barter com cuidado.",
-        "pecuaria": "O foco é a @ produzida por hectare. O giro de estoque rápido e o bom manejo do pasto garantem que o boi ganhe peso todo dia. Boi parado é prejuízo no balanço final.",
-        "maquina": "Manutenção preventiva é regra. Trator parado na hora do plantio é saca de soja que você deixa de colher. Otimize o diesel e o tempo de manobra."
-    };
 
     async function getLiveWeather(city = "Araçatuba") {
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=pt_br&appid=${WEATHER_KEY}`;
         try {
             const response = await fetch(url);
             const data = await response.json();
-            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${Math.round(data.main.temp)}°C | ${data.weather[0].description}`;
+            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${Math.round(data.main.temp)}°C | ${data.weather[0].description} | Umidade: ${data.main.humidity}%`;
         } catch (e) {
-            document.getElementById('weather-widget').innerHTML = "📍 Araçatuba: 28°C | Operação Normal";
+            document.getElementById('weather-widget').innerHTML = "📍 Araçatuba: Conectado";
         }
     }
 
     function selectRole(role) {
         userRole = role;
         document.getElementById('profile-selector').style.display = 'none';
-        const welcome = role === 'Engenheiro Agrônomo' ? 
-            "Saudações Técnicas. Sistema pronto para análise de parâmetros agronômicos. O que vamos avaliar?" : 
-            "Opa, tudo certo! Pronto para cuidar da safra e dos negócios. O que você precisa resolver hoje?";
-        addMessage(welcome, 'bot-msg');
+        const msg = role === 'Engenheiro Agrônomo' ? 
+            "Saudações técnicas. Estou pronto para analisar parâmetros de solo, fitossanidade e fisiologia." : 
+            "Opa! Tudo certo por aqui. Vamos cuidar da roça e garantir que essa safra dê lucro!";
+        addMessage(msg, 'bot-msg');
         getLiveWeather();
     }
 
@@ -106,38 +81,48 @@
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    function searchExpertKnowledge(text) {
-        const q = text.toLowerCase();
-        const database = (userRole === 'Engenheiro Agrônomo') ? techAgro : businessAgro;
-        let responses = [];
+    async function callGemini(prompt) {
+        // Endpoint v1beta para máxima compatibilidade com Gemini 1.5 Flash
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        
+        // Definição do comportamento mestre da IA
+        const systemPrompt = userRole === 'Engenheiro Agrônomo' ? 
+            "Você é um Engenheiro Agrônomo experiente. Use termos técnicos (ex: CTC, V%, PRNT, fitossanidade). Suas respostas devem ser baseadas em ciência agronômica e normas técnicas." : 
+            "Você é um consultor prático para Produtores Rurais. Use termos de mercado (sacas/ha, margem, custo fixo). Seja direto e focado na prática do dia a dia no campo.";
 
-        for (let key in database) {
-            if (q.includes(key)) {
-                responses.push(database[key]);
-            }
-        }
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `${systemPrompt}\n\nPergunta: ${prompt}` }] }]
+                })
+            });
 
-        if (responses.length > 0) {
-            return responses.join("\n\n---\n\n");
-        } else {
-            return userRole === 'Engenheiro Agrônomo' ? 
-                "Este termo não consta em nosso glossário técnico. Por favor, especifique parâmetros como NPK, Calcário, Manejo ou Irrigação." : 
-                "Ainda não tenho essa informação no meu caderno de campo. Tente perguntar sobre Preços, Calcário, Soja ou Gado.";
+            const data = await response.json();
+            if (data.error) return `⚠️ Erro na IA: ${data.error.message}`;
+            return data.candidates[0].content.parts[0].text;
+        } catch (e) {
+            return "⚠️ Falha na conexão. Verifique sua internet.";
         }
     }
 
-    function handleAction() {
+    async function handleAction() {
         const input = document.getElementById('userInput');
         const text = input.value.trim();
         if (!text) return;
 
         addMessage(text, 'user-msg');
         input.value = '';
-        
-        setTimeout(() => {
-            const answer = searchExpertKnowledge(text);
-            addMessage(answer, 'bot-msg');
-        }, 400);
+
+        const loading = document.createElement('div');
+        loading.className = 'message bot-msg';
+        loading.innerText = "IA está analisando...";
+        document.getElementById('chat').appendChild(loading);
+
+        const aiResponse = await callGemini(text);
+        loading.innerText = aiResponse;
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 </script>
 </body>
