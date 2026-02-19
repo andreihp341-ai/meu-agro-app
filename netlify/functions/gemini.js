@@ -1,25 +1,32 @@
-exports.handler = async function(event, context) {
-    if (event.httpMethod !== "POST") return { statusCode: 405, body: "Metodo nao permitido" };
-    
-    try {
-        const body = JSON.parse(event.body);
-        const apiKey = process.env.GEMINI_API_KEY; // Pega a chave que você salvou no Netlify
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+const { GoogleGenerativeAI } = require("@google-generative-ai/generative-ai");
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: `Perfil: ${body.role}\n\nPergunta: ${body.prompt}` }] }]
-            })
-        });
+exports.handler = async (event) => {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        const data = await response.json();
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ reply: data.candidates[0].content.parts[0].text })
-        };
-    } catch (e) {
-        return { statusCode: 500, body: JSON.stringify({ error: "Erro na conexao segura." }) };
+  try {
+    const data = JSON.parse(event.body);
+    const { prompt, perfil } = data; // Recebe o texto e o perfil do site
+
+    // Criamos a "personalidade" baseada no perfil escolhido
+    let instrucaoSistema = "";
+    if (perfil === "Produtor Rural") {
+      instrucaoSistema = "Você é um consultor agrícola prático. Use linguagem simples, direta e termos do dia a dia do campo. Foque em soluções de fácil aplicação.";
+    } else {
+      instrucaoSistema = "Você é um Engenheiro Agrônomo sênior. Use termos técnicos, nomes científicos de pragas e doenças, e baseie suas respostas em dados agronômicos rigorosos.";
     }
+
+    const result = await model.generateContent(`${instrucaoSistema}\n\nPergunta do usuário: ${prompt}`);
+    const response = await result.response;
+    
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ reply: response.text() }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Erro na conexão com a IA" }),
+    };
+  }
 };
