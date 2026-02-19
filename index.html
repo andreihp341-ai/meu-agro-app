@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroTech AI - Consultoria Real</title>
+    <title>AgroTech AI - Consultoria Segura</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --agro-green: #27ae60; --dark: #1b262c; --white: #ffffff; }
@@ -18,13 +18,16 @@
         .input-area { background: white; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
         input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 25px; outline: none; }
         button { background: var(--agro-green); color: white; border: none; padding: 0 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        
         #profile-selector { position: fixed; inset: 0; background: rgba(27,38,44,0.98); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .role-card { background: white; width: 90%; max-width: 350px; padding: 25px; margin: 10px; border-radius: 15px; cursor: pointer; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
 
-<header><h1>AgroTech AI 🌿</h1></header>
+<header>
+    <h1>AgroTech AI 🌿</h1>
+</header>
 <div id="weather-widget">📍 Sincronizando clima de Araçatuba...</div>
 
 <div id="profile-selector">
@@ -47,8 +50,6 @@
 </div>
 
 <script>
-    // CREDENCIAIS ATUALIZADAS
-    const GEMINI_KEY = "AIzaSyCIDjlsWbgIRCNYZFzOhee2A7Leq1SDquU"; 
     const WEATHER_KEY = "c971417bdb941190d1cde558e548e34d";
     let userRole = '';
 
@@ -57,7 +58,7 @@
         try {
             const response = await fetch(url);
             const data = await response.json();
-            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${Math.round(data.main.temp)}°C | ${data.weather[0].description} | Umidade: ${data.main.humidity}%`;
+            document.getElementById('weather-widget').innerHTML = `📍 ${city}: ${Math.round(data.main.temp)}°C | ${data.weather[0].description}`;
         } catch (e) {
             document.getElementById('weather-widget').innerHTML = "📍 Araçatuba: Conectado";
         }
@@ -66,10 +67,7 @@
     function selectRole(role) {
         userRole = role;
         document.getElementById('profile-selector').style.display = 'none';
-        const msg = role === 'Engenheiro Agrônomo' ? 
-            "Saudações técnicas. Estou pronto para analisar parâmetros de solo, fitossanidade e fisiologia." : 
-            "Opa! Tudo certo por aqui. Vamos cuidar da roça e garantir que essa safra dê lucro!";
-        addMessage(msg, 'bot-msg');
+        addMessage(`Conexão segura estabelecida. Perfil: ${role}. Como posso ajudar hoje?`, 'bot-msg');
         getLiveWeather();
     }
 
@@ -81,29 +79,21 @@
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function callGemini(prompt) {
-        // Endpoint v1beta para máxima compatibilidade com Gemini 1.5 Flash
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
-        
-        // Definição do comportamento mestre da IA
-        const systemPrompt = userRole === 'Engenheiro Agrônomo' ? 
-            "Você é um Engenheiro Agrônomo experiente. Use termos técnicos (ex: CTC, V%, PRNT, fitossanidade). Suas respostas devem ser baseadas em ciência agronômica e normas técnicas." : 
-            "Você é um consultor prático para Produtores Rurais. Use termos de mercado (sacas/ha, margem, custo fixo). Seja direto e focado na prática do dia a dia no campo.";
-
+    // ESSA É A PARTE IMPORTANTE: Agora ele fala com o Netlify!
+    async function callGemini(promptTexto) {
         try {
-            const response = await fetch(url, {
+            const response = await fetch('/.netlify/functions/gemini', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: `${systemPrompt}\n\nPergunta: ${prompt}` }] }]
-                })
+                body: JSON.stringify({ prompt: promptTexto, role: userRole })
             });
 
             const data = await response.json();
-            if (data.error) return `⚠️ Erro na IA: ${data.error.message}`;
-            return data.candidates[0].content.parts[0].text;
+            
+            if (data.error) return "⚠️ Erro no servidor seguro. Verifique a chave no Netlify.";
+            return data.reply;
         } catch (e) {
-            return "⚠️ Falha na conexão. Verifique sua internet.";
+            return "⚠️ Falha na conexão segura com a IA.";
         }
     }
 
@@ -117,7 +107,7 @@
 
         const loading = document.createElement('div');
         loading.className = 'message bot-msg';
-        loading.innerText = "IA está analisando...";
+        loading.innerText = "IA analisando via túnel seguro...";
         document.getElementById('chat').appendChild(loading);
 
         const aiResponse = await callGemini(text);
