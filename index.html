@@ -5,87 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroVision Pro</title>
     <style>
-        :root {
-            --primary: #2e7d32;
-            --bg: #f1f8e9;
-            --text: #1b5e20;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { background: var(--primary); color: white; padding: 1rem; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .message { max-width: 80%; padding: 12px 16px; border-radius: 15px; line-height: 1.4; position: relative; }
-        .bot { align-self: flex-start; background: white; color: #333; border-left: 5px solid var(--primary); box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+        :root { --primary: #2e7d32; --bg: #f1f8e9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #setup-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 20px; }
+        .profile-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .profile-btn { width: 100%; padding: 18px; margin: 12px 0; border: 2px solid var(--primary); border-radius: 12px; background: white; color: var(--primary); font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .profile-btn:hover { background: var(--primary); color: white; }
+        #chat-section { display: none; flex-direction: column; flex: 1; height: 100%; overflow: hidden; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .message { max-width: 85%; padding: 14px; border-radius: 18px; line-height: 1.5; }
+        .bot { align-self: flex-start; background: white; border-left: 6px solid var(--primary); color: #333; }
         .user { align-self: flex-end; background: var(--primary); color: white; }
-        #input-area { background: white; padding: 20px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
-        input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 25px; outline: none; }
-        button { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #999; }
+        #input-area { background: white; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
+        input { flex: 1; padding: 14px; border: 1px solid #ccc; border-radius: 30px; outline: none; }
+        button#send-btn { background: var(--primary); color: white; border: none; padding: 0 25px; border-radius: 30px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>AgroVision Pro</h1>
-    <small>Consultoria Especializada em Manejo e Defensivos</small>
 </header>
 
-<div id="chat-container">
-    <div class="message bot">
-        <strong>AgroVision Pro:</strong><br>
-        Conexão segura estabelecida. Perfil: Engenheiro Agrônomo. Como posso ajudar no seu manejo hoje?
+<div id="setup-container">
+    <div class="profile-card">
+        <h2>Bem-vindo!</h2>
+        <p>Como você deseja ser atendido?</p>
+        <button class="profile-btn" onclick="startChat('Produtor Rural')">🧑‍🌾 Sou Produtor Rural</button>
+        <button class="profile-btn" onclick="startChat('Engenheiro Agrônomo')">🎓 Sou Engenheiro Agrônomo</button>
+        <p style="font-size: 12px; color: #666; margin-top: 15px;">A IA ajustará a linguagem conforme seu perfil.</p>
     </div>
 </div>
 
-<div id="input-area">
-    <input type="text" id="user-input" placeholder="Sua dúvida agro (ex: ferrugem na soja)...">
-    <button id="send-btn">Enviar</button>
+<div id="chat-section">
+    <div id="chat-container"></div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Escreva sua dúvida aqui...">
+        <button id="send-btn">Enviar</button>
+    </div>
 </div>
 
 <script>
+    let userProfile = "";
+    const chatSection = document.getElementById('chat-section');
+    const setupContainer = document.getElementById('setup-container');
     const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
+
+    function startChat(profile) {
+        userProfile = profile;
+        setupContainer.style.display = 'none';
+        chatSection.style.display = 'flex';
+        
+        const saudacao = profile === 'Produtor Rural' 
+            ? "Olá! Sou seu assistente AgroVision. Vou te ajudar com orientações práticas para sua lida no campo. Qual é a dúvida de hoje?"
+            : "Saudações técnicas. Sistema configurado para suporte agronômico avançado. Em quais parâmetros de manejo vamos trabalhar?";
+        
+        addMessage(saudacao, false);
+    }
 
     function addMessage(text, isUser) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-        msgDiv.innerHTML = isUser ? text : `<strong>AgroVision Pro:</strong><br>${text}`;
+        msgDiv.innerHTML = isUser ? text : `<strong>AgroVision Pro (${userProfile}):</strong><br>${text}`;
         chatContainer.appendChild(msgDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
     async function sendMessage() {
-        const text = userInput.value.trim();
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
         if (!text) return;
 
         addMessage(text, true);
-        userInput.value = '';
-        sendBtn.disabled = true;
+        input.value = '';
 
         try {
-            // Chama a função 'gemini' que você criou na pasta netlify/functions
             const response = await fetch('/.netlify/functions/gemini', {
                 method: 'POST',
-                body: JSON.stringify({ prompt: text }),
+                body: JSON.stringify({ prompt: text, perfil: userProfile }),
                 headers: { 'Content-Type': 'application/json' }
             });
 
             const data = await response.json();
-
+            
             if (data.error) {
-                addMessage("⚠️ Erro no servidor seguro. Verifique a chave no Netlify.", false);
+                addMessage("⚠️ " + data.error, false);
             } else {
                 addMessage(data.reply, false);
             }
-        } catch (error) {
-            addMessage("⚠️ Falha na conexão segura com a IA.", false);
-        } finally {
-            sendBtn.disabled = false;
+        } catch (e) {
+            addMessage("⚠️ Falha na conexão com o servidor.", false);
         }
     }
 
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => {
+    document.getElementById('send-btn').addEventListener('click', sendMessage);
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
 </script>
