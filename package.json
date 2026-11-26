@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "Aplicativo AgroVision Pro",
   "dependencies": {
-    "@google-generative-ai/generative-ai": "latest"
+    "@google/genai": "^3.6.1"
   }
 }

@@ -89,8 +89,8 @@
 
             const data = await response.json();
             
-            if (data.error) {
-                addMessage("⚠️ " + data.error, false);
+            if (data.error || !data.reply) {
+                addMessage("⚠️ " + (data.error || "Resposta vazia do servidor."), false);
             } else {
                 addMessage(data.reply, false);
             }
