@@ -24,7 +24,24 @@ export default async (req) => {
       contents: `${instrucao}\n\nPergunta: ${prompt}`,
     });
 
-    return Response.json({ reply: response.text });
+    // Extrai o texto da resposta (o acessor response.text pode vir vazio)
+    const reply =
+      response.text ??
+      (response.candidates?.[0]?.content?.parts ?? [])
+        .map((part) => part.text ?? "")
+        .join("")
+        .trim();
+
+    if (!reply) {
+      console.error("Resposta da IA sem texto:", JSON.stringify(response));
+      return Response.json(
+        { error: "A IA não retornou uma resposta. Tente reformular a pergunta." },
+        { status: 502 }
+      );
+    }
+
+    // Campo "reply" é o que o frontend (index.html) lê para exibir a resposta
+    return Response.json({ reply });
   } catch (error) {
     console.error("Erro na comunicação com a IA:", error);
     return Response.json({ error: "Erro no servidor ao consultar a IA." }, { status: 500 });
